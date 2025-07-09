@@ -1,40 +1,57 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import useVirtualKeyboard from "@/hooks/useVirtualKeyboard"; // Adjust path accordingly
+
+// Message type
+type Message = {
+  id: number;
+  type: "ai" | "user";
+  content: string;
+};
 
 export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Initial AI message
-  const [messages, setMessages] = useState<
-    Array<{ id: number; type: "ai" | "user"; content: string }>
-  >([{ id: 0, type: "ai" as const, content: "Welcome!" }]);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 0, type: "ai", content: "Welcome!" },
+  ]);
+
+  const { isKeyboardOpen, handleInputFocus, handleInputBlur } =
+    useVirtualKeyboard();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    const timeoutId = setTimeout(scrollToBottom, 200); // Wait for DOM update
+    return () => clearTimeout(timeoutId);
   }, [messages]);
 
-  const handleInputFocus = () => {
-    setTimeout(scrollToBottom, 300); // iOS Safari workaround
-  };
+  // Optional: Scroll to bottom again when keyboard opens
+  useEffect(() => {
+    if (isKeyboardOpen) {
+      const timeoutId = setTimeout(scrollToBottom, 200);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isKeyboardOpen]);
 
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
 
-    const newMessage = {
+    const newMessage: Message = {
       id: messages.length,
-      type: "user" as const,
+      type: "user",
       content: text,
     };
 
-    const aiReply = {
+    const aiReply: Message = {
       id: messages.length + 1,
-      type: "ai" as const,
+      type: "ai",
       content: `You said: ${text}`,
     };
 
@@ -53,7 +70,9 @@ export default function Home() {
   return (
     <div className="w-full h-[100dvh] bg-gray-100 flex flex-col">
       {/* NAVIGATION */}
-      <nav className="min-h-[60px] bg-red-400"></nav>
+      <nav className="min-h-[60px] bg-red-400 flex flex-col items-center justify-center">
+        Navigation bar
+      </nav>
 
       {/* MAIN CONTENT */}
       <main className="flex-1 bg-blue-400 flex flex-grow min-h-0 overflow-hidden">
@@ -74,18 +93,14 @@ export default function Home() {
 
           {/* Messages Container */}
           <div
-            className="flex-1 overflow-y-auto p-4 bg-blue-500 flex flex-col gap-4"
+            className={`flex-1 overflow-y-auto p-4 bg-blue-500 flex flex-col gap-4`}
             style={{ maxHeight: "calc(100dvh - 160px)" }}
           >
+            {isKeyboardOpen && <div className="mb-auto"></div>}
             {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`w-full flex flex-col ${
-                  message.type === "ai" ? "items-start" : "items-end"
-                } `}
-              >
+              <div key={message.id} className="w-full">
                 <div
-                  className={`p-3 rounded-md w-[90%] ${
+                  className={`p-3 rounded-md ${
                     message.type === "ai"
                       ? "bg-blue-300 ml-0 text-left"
                       : "bg-green-300 ml-auto text-right"
@@ -111,6 +126,7 @@ export default function Home() {
                 className="flex-1 p-3 border border-gray-300 rounded-lg outline-none bg-gray-100"
                 placeholder="Type your message..."
                 onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
               />
               <button
                 type="submit"
