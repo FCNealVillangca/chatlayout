@@ -24,7 +24,15 @@ export default function ChatInterface() {
   const [inputValue, setInputValue] = useState("");
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      const container = messagesEndRef.current?.parentElement;
+      if (container) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }, 300);
   };
 
   useEffect(() => {
