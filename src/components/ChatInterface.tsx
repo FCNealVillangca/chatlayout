@@ -94,7 +94,10 @@ export default function Home() {
           {/* Messages Container */}
           <div
             className={`flex-1 overflow-y-auto p-4 bg-blue-500 flex flex-col gap-4`}
-            style={{ maxHeight: "calc(100dvh - 160px)" }}
+            style={{
+              maxHeight: "calc(100dvh - 160px)",
+              WebkitOverflowScrolling: "touch",
+            }}
           >
             {isKeyboardOpen && <div className="mb-auto"></div>}
             {messages.map((message) => (
