@@ -7,9 +7,9 @@ export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Initial AI message
-  const [messages, setMessages] = useState([
-    { id: 0, type: "ai" as const, content: "Welcome!" },
-  ]);
+  const [messages, setMessages] = useState<
+    Array<{ id: number; type: "ai" | "user"; content: string }>
+  >([{ id: 0, type: "ai" as const, content: "Welcome!" }]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
