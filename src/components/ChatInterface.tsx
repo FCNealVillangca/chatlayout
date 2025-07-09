@@ -1,123 +1,127 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import useVirtualKeyboard from "@/hooks/useVirtualKeyboard";
+import { useRef, useEffect, useState } from "react";
 
-export default function ChatInterface() {
-  const { handleInputFocus, handleInputBlur, isKeyboardOpen } =
-    useVirtualKeyboard();
+export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  type Message = {
-    id: number;
-    type: "ai" | "user";
-    content: string;
-  };
-
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 0,
-      type: "ai",
-      content: "Welcome to our chat! How can I help you today?",
-    },
+  // Initial AI message
+  const [messages, setMessages] = useState([
+    { id: 0, type: "ai" as const, content: "Welcome!" },
   ]);
-  const [inputValue, setInputValue] = useState("");
 
   const scrollToBottom = () => {
-    setTimeout(() => {
-      const container = messagesEndRef.current?.parentElement;
-      if (container) {
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: "smooth",
-        });
-      }
-    }, 300);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-
-    // Add user message
-    const userMessage: Message = {
-      id: messages.length,
-      type: "user",
-      content: inputValue.trim(),
-    };
-
-    // Add AI reply
-    const aiMessage: Message = {
-      id: messages.length + 1,
-      type: "ai",
-      content: "Just a sample reply",
-    };
-
-    setMessages((prev) => [...prev, userMessage, aiMessage]);
-    setInputValue("");
+  const handleInputFocus = () => {
+    setTimeout(scrollToBottom, 300); // iOS Safari workaround
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
+  const handleSendMessage = (text: string) => {
+    if (!text.trim()) return;
+
+    const newMessage = {
+      id: messages.length,
+      type: "user" as const,
+      content: text,
+    };
+
+    const aiReply = {
+      id: messages.length + 1,
+      type: "ai" as const,
+      content: `You said: ${text}`,
+    };
+
+    setMessages((prev) => [...prev, newMessage, aiReply]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const input = inputRef.current;
+    if (input) {
+      handleSendMessage(input.value);
+      input.value = "";
     }
   };
 
   return (
-    // flex grow is very important for deeply nested flex containers
-    <div className="w-[500px] flex flex-col bg-amber-100 flex-grow min-h-0">
-      {/* Header */}
-      <div className="max-h-[100px] flex items-center gap-3 p-4 bg-white border-b flex-shrink-0">
-        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-          <span className="text-gray-600 font-semibold">AI</span>
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-800">AI Assistant</h3>
-          <p className="text-sm text-gray-500">Online</p>
-        </div>
-      </div>
+    <div className="w-full h-[100dvh] bg-gray-100 flex flex-col">
+      {/* NAVIGATION */}
+      <nav className="min-h-[60px] bg-red-400"></nav>
 
-      {/* Messages Container */}
-      <div
-        className={`flex-1 overflow-y-auto p-4 bg-blue-500 flex flex-col gap-4 ${
-          isKeyboardOpen ? "justify-end" : ""
-        }`}
-      >
-        {messages.map((message) => (
-          <div key={message.id} className="w-full">
-            <div
-              className={`p-2 w-[90%] ${
-                message.type === "ai"
-                  ? "bg-blue-300 ml-0"
-                  : "bg-green-300 ml-auto"
-              }`}
-            >
-              {message.content}
+      {/* MAIN CONTENT */}
+      <main className="flex-1 bg-blue-400 flex flex-grow min-h-0 overflow-hidden">
+        <div className="w-full bg-green-400 md:block hidden"></div>
+
+        {/* CHAT BOX */}
+        <div className="w-full max-w-[500px] flex flex-col bg-amber-100 h-full">
+          {/* Header */}
+          <div className="max-h-[100px] flex items-center gap-3 p-4 bg-white border-b flex-shrink-0">
+            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-gray-600 font-semibold">AI</span>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">AI Assistant</h3>
+              <p className="text-sm text-gray-500">Online</p>
             </div>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input */}
-      <div className="flex flex-shrink-0">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyPress}
-          className="w-full h-full p-2 bg-gray-400"
-          placeholder="Type your message here..."
-          onFocus={handleInputFocus}
-          onBlur={handleInputBlur}
-        />
-        <button onClick={handleSendMessage} className="w-10 h-10 bg-gray-400">
-          Send
-        </button>
-      </div>
+          {/* Messages Container */}
+          <div
+            className="flex-1 overflow-y-auto p-4 bg-blue-500 flex flex-col gap-4"
+            style={{ maxHeight: "calc(100dvh - 160px)" }}
+          >
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`w-full flex flex-col ${
+                  message.type === "ai" ? "items-start" : "items-end"
+                } `}
+              >
+                <div
+                  className={`p-3 rounded-md w-[90%] ${
+                    message.type === "ai"
+                      ? "bg-blue-300 ml-0 text-left"
+                      : "bg-green-300 ml-auto text-right"
+                  }`}
+                >
+                  {message.content}
+                </div>
+              </div>
+            ))}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Form */}
+          <form
+            onSubmit={handleSubmit}
+            className="p-4 bg-white border-t flex-shrink-0"
+          >
+            <div className="flex items-center gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                className="flex-1 p-3 border border-gray-300 rounded-lg outline-none bg-gray-100"
+                placeholder="Type your message..."
+                onFocus={handleInputFocus}
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
