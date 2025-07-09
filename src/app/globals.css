@@ -29,3 +29,8 @@ html, body {
   height: 100%;
   overscroll-behavior: none;
 }
+.mainBlock {
+  max-height: 100svh;
+  max-height: 100dvh;
+  height: 100%;
+}

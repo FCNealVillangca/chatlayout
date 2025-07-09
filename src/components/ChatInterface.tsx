@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full h-[100dvh] bg-gray-100 flex flex-col">
+    <div className="w-full mainBlock bg-gray-100 flex flex-col">
       {/* NAVIGATION */}
       <nav className="min-h-[60px] bg-red-400 flex flex-col items-center justify-center">
         Navigation bar
@@ -94,10 +94,7 @@ export default function Home() {
           {/* Messages Container */}
           <div
             className={`flex-1 overflow-y-auto p-4 bg-blue-500 flex flex-col gap-4`}
-            style={{
-              maxHeight: "calc(100dvh - 160px)",
-              WebkitOverflowScrolling: "touch",
-            }}
+            style={{ maxHeight: "calc(100dvh - 160px)" }}
           >
             {isKeyboardOpen && <div className="mb-auto"></div>}
             {messages.map((message) => (
